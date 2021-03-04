@@ -18,24 +18,33 @@ public class Server {
         handlers = new Vector<>();
     }
 
-    public void start() {
+    public void listen() {
         new Thread(() -> {
-            while (true) {
-                try {
+            System.out.println("Server socket: " + serverSocket + " STARTED LISTENING.");
+            try {
+                while (true) {
                     Socket createdSocket = serverSocket.accept();
-                    System.out.println("Socket connected: " + createdSocket);
+                    System.out.println("Remote client socket connected: " + createdSocket);
                     ClientHandler clientHandler = new ClientHandler(createdSocket, this);
                     handlers.add(clientHandler);
                     new Thread(clientHandler).start();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+            } catch (IOException e) {
+                System.out.println("Server socket: " + serverSocket + " is closed.");
             }
         }).start();
     }
 
     public List<ClientHandler> getHandlers() {
         return handlers;
+    }
+
+    public void removeHandler(ClientHandler clientHandler) {
+        handlers.remove(clientHandler);
+    }
+
+    public ServerSocket getServerSocket() {
+        return serverSocket;
     }
 }
 

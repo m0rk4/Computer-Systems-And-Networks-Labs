@@ -79,7 +79,9 @@ public class IpScanner {
             try {
                 Process p = Runtime.getRuntime().exec("arp -a");
                 try (BufferedReader inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                    List<String> lines = inputStream.lines().collect(Collectors.toList());
+                    List<String> lines = inputStream.lines()
+                            .collect(Collectors.toList());
+
                     String hostAddress = localInetAddressPC.getHostAddress();
                     List<String> addresses = ipParser.getInterfaceAddresses(hostAddress, lines);
                     addresses = addresses.stream()

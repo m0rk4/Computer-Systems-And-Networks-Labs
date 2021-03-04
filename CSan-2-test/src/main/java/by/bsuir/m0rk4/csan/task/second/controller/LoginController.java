@@ -13,6 +13,8 @@ import java.net.*;
 
 public class LoginController {
 
+    private static final int MAX_SOCKET_CONNECT_TIMEOUT_MS = 2000;
+
     public TextField usernameTField;
     public TextField ipTField;
     public TextField portTField;
@@ -27,7 +29,7 @@ public class LoginController {
     private void connectEvent(ActionEvent actionEvent) {
         String name = usernameTField.getText();
         if (name.isBlank()) {
-            showAlert(Alert.AlertType.WARNING, "Name", "Enter correct name.");
+            showAlert(Alert.AlertType.WARNING, "Name", "Empty name.");
             return;
         }
 
@@ -35,16 +37,18 @@ public class LoginController {
         String ipString = ipTField.getText();
 
         Integer port = null;
+        ServerSocket serverSocket = null;
         try {
             port = Integer.parseInt(portString);
-            ServerSocket serverSocket = new ServerSocket(port);
+            serverSocket = new ServerSocket(port);
+            System.out.println("\nServer socket: " + serverSocket + " is created. BUT NOT LISTENING.");
 
             Server server = new Server(serverSocket);
 
             Socket socket = createClientSocket(ipString, port);
-            server.start();
-            moveToChat(socket, name);
+            server.listen();
 
+            moveToChat(socket, name);
         } catch (IllegalArgumentException e) {
             if (port == null) {
                 showAlert(Alert.AlertType.ERROR, "Port", "Check port validity.");
@@ -53,22 +57,29 @@ public class LoginController {
             }
         } catch (BindException e) {
             try {
+                System.out.println("Port: " + port + " is taken.");
+                System.out.println("Trying to create client socket...");
                 Socket socket = createClientSocket(ipString, port);
                 moveToChat(socket, name);
             } catch (IOException ioException) {
                 showAlert(Alert.AlertType.ERROR, "Connection", "Error occurred during the connection.");
             }
-        } catch (SocketTimeoutException e) {
-            showAlert(Alert.AlertType.ERROR, "Socket", "Can't create socket. Check IP & port.");
         } catch (IOException e) {
-            showAlert(Alert.AlertType.ERROR, "Connection", "Error occurred during the connection.");
+            showAlert(Alert.AlertType.ERROR, "Socket", "Can't create socket. Check IP & port.");
+            try {
+                serverSocket.close();
+                System.out.println("Server socket: " + serverSocket + " is closed.");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
     private Socket createClientSocket(String ip, int port) throws IOException {
         Socket socket = new Socket();
         InetSocketAddress inetSocketAddress = new InetSocketAddress(ip, port);
-        socket.connect(inetSocketAddress, 2000);
+        socket.connect(inetSocketAddress, MAX_SOCKET_CONNECT_TIMEOUT_MS);
+        System.out.println("Local client socket: " + socket + " is created.");
         return socket;
     }
 

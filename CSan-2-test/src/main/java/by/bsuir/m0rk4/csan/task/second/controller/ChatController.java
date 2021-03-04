@@ -12,11 +12,8 @@ import javafx.stage.FileChooser;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class ChatController {
-
-    private volatile boolean running = true;
 
     public Button disconnectButton;
     private final Socket socket;
@@ -52,7 +49,8 @@ public class ChatController {
             int len;
             byte[] buffer = new byte[4096 * 20];
             try {
-                while (running) {
+                while (true) {
+
                     inputStream.read(buffer, 0, 18);
                     String contentType = new String(buffer, 0, 18);
 
@@ -107,7 +105,7 @@ public class ChatController {
                     }
                 }
             } catch (IOException e) {
-                System.out.println("Socket: " + socket + " is closed. Bye " + name  + "!");
+                System.out.println("Local client socket: " + socket + " is closed. Bye " + name  + "!");
             }
         }).start();
     }
@@ -121,6 +119,7 @@ public class ChatController {
         fileChooser.setInitialDirectory(new File("./"));
         fileChooser.setInitialFileName(filename);
         File file = fileChooser.showSaveDialog(null);
+
         if (file != null) {
             try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file))) {
                 byte[] contents = customButtonFileDownloader.getContents();
@@ -132,10 +131,12 @@ public class ChatController {
     }
 
     private void sendFile(ActionEvent actionEvent) {
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(new File("./"));
         fileChooser.setTitle("Choose File");
         File file = fileChooser.showOpenDialog(null);
+
         if (file != null) {
             try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
                 int read;
@@ -184,8 +185,8 @@ public class ChatController {
     }
 
     private void disconnect(ActionEvent actionEvent) {
-        running = false;
         try {
+            outputStream.flush();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
