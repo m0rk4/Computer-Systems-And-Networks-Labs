@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: by.bsuir.m0rk4.csan.task.first.Runner
+
